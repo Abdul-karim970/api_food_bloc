@@ -1,4 +1,5 @@
-import 'package:api_food/API/apple_recipe_provider.dart';
+import 'package:api_food/API/apple_recipe_search_result_provider.dart';
+import 'package:api_food/pages/malbex_page.dart';
 import 'package:flutter/material.dart';
 import '../models/apple_recipe_results_model.dart';
 
@@ -27,6 +28,15 @@ class _RecipeAppleResultPageState extends State<RecipeAppleResultPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          IconButton(
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Malbec(),
+                  )),
+              icon: const Icon(Icons.navigate_next_outlined))
+        ],
       ),
       body: Center(
           child: FutureBuilder(

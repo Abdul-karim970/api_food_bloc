@@ -1,7 +1,8 @@
 import 'package:api_food/pages/recipes_apple_page.dart';
+import 'package:api_food/recipe_state_widgets/recipes_state_widget.dart';
 import 'package:flutter/material.dart';
-
-import '../API/recipe_api_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/recipe_bloc.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -13,7 +14,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _recipesProvider = RecipesProvider();
+  late RecipeBloc recipeBloc;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    recipeBloc = context.read<RecipeBloc>();
+    recipeBloc.add(RecipeFetchEvent());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,27 +41,18 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Center(
-          child: FutureBuilder(
-        future: _recipesProvider.fetchRecipes(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            var snapshotData = snapshot.data!;
-            return ListView.builder(
-              itemCount: snapshotData.length,
-              itemBuilder: (context, index) {
-                var itemData = snapshotData[index];
-                return ListTile(
-                  title: Text(
-                    itemData.title,
-                  ),
-                  leading: CircleAvatar(
-                      backgroundImage: NetworkImage(itemData.image)),
-                  trailing: Text(itemData.imageType),
-                );
-              },
-            );
+          child: BlocBuilder<RecipeBloc, RecipeState>(
+        bloc: recipeBloc,
+        builder: (context, state) {
+          if (state is RecipeInitialState) {
+            return const RecipeInitialStateWidget();
+          } else if (state is RecipeLoadingState) {
+            return const RecipeLoadingWidget();
+          } else if (state is RecipeLoadedState) {
+            return RecipeLoadedStateWidget(recipes: state.recipes);
           } else {
-            return const CircularProgressIndicator();
+            return RecipeErrorStateWidget(
+                error: (state as RecipeErrorState).error);
           }
         },
       )),

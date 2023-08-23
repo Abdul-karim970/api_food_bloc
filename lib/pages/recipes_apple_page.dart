@@ -1,4 +1,4 @@
-import 'package:api_food/API/apple_recipe_provider.dart';
+import 'package:api_food/API/apple_recipe_search_result_provider.dart';
 import 'package:api_food/pages/recip_apple_result_page.dart';
 import 'package:flutter/material.dart';
 import '../models/apple_recipe_search_result_model.dart';
