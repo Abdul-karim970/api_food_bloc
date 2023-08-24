@@ -1,79 +1,58 @@
-import 'package:api_food/API/apple_recipe_search_result_provider.dart';
-import 'package:api_food/pages/malbex_page.dart';
+import 'package:api_food/apple_recipe_result_riverpod/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../apple_recipe_result_riverpod/states.dart';
 import '../models/apple_recipe_results_model.dart';
 
-class RecipeAppleResultPage extends StatefulWidget {
-  const RecipeAppleResultPage({super.key, required this.title});
-
-  final String title;
+class AppleRecipeResult extends ConsumerStatefulWidget {
+  const AppleRecipeResult({super.key});
 
   @override
-  State<RecipeAppleResultPage> createState() => _RecipeAppleResultPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _AppleRecipeResultState();
 }
 
-class _RecipeAppleResultPageState extends State<RecipeAppleResultPage> {
-  late AppleRecipeResultProvider _appleRecipeResults;
-  List<AppleRecipeResults> _appleSearchResultList = List.empty();
-
-  @override
-  void initState() {
-    super.initState();
-    _appleRecipeResults = AppleRecipeResultProvider();
-  }
-
+class _AppleRecipeResultState extends ConsumerState<AppleRecipeResult> {
   @override
   Widget build(BuildContext context) {
+    ref.read(appleRecipeResultProvider.notifier).fetchAppleRecipeResults();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const Malbec(),
-                  )),
-              icon: const Icon(Icons.navigate_next_outlined))
-        ],
       ),
       body: Center(
-          child: FutureBuilder(
-        future: _appleRecipeResults.fetchAppleRecipeResults(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.active ||
-              snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else {
-            try {
-              _appleSearchResultList = snapshot.data!;
-              print(_appleSearchResultList.length);
-              return LoadedStateWidget(
-                  searchResultsList: _appleSearchResultList);
-            } catch (e) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(e.toString())));
+        child: Consumer(
+          builder: (context, ref, child) {
+            var state = ref.watch(appleRecipeResultProvider);
+            if (state is AppleRecipeResultsInitialState) {
+              return Text('initial');
+            } else if (state is AppleRecipeResultsLoadingState) {
               return const CircularProgressIndicator();
+            } else if (state is AppleRecipeResultsLoadedState) {
+              return AppleRecipeLoadedStateWidget(
+                  appleRecipeResultsList: state.appleRecipeResults);
+            } else {
+              return Text((state as AppleRecipeResultsErrorState).error);
             }
-          }
-        },
-      )),
+          },
+        ),
+      ),
     );
   }
 }
 
-class LoadedStateWidget extends StatelessWidget {
-  const LoadedStateWidget({super.key, required this.searchResultsList});
-  final List<AppleRecipeResults> searchResultsList;
+class AppleRecipeLoadedStateWidget extends StatelessWidget {
+  const AppleRecipeLoadedStateWidget(
+      {super.key, required this.appleRecipeResultsList});
+  final List<AppleRecipeResults> appleRecipeResultsList;
 
   @override
   Widget build(BuildContext context) {
     return ListView.custom(
         itemExtent: 70,
         childrenDelegate: SliverChildBuilderDelegate(
-            childCount: searchResultsList.length, (context, index) {
-          var searchResult = searchResultsList[index];
+            childCount: appleRecipeResultsList.length, (context, index) {
+          var searchResult = appleRecipeResultsList[index];
           return AppleRecipeListTile(
             name: searchResult.name ?? '',
             totalProducts: searchResult.id ?? 0,

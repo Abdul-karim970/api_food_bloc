@@ -33,8 +33,7 @@ class _RecipeApplePageState extends State<RecipeApplePage> {
               onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        const RecipeAppleResultPage(title: 'Result'),
+                    builder: (context) => const AppleRecipeResult(),
                   )),
               icon: const Icon(Icons.navigate_next_rounded))
         ],
